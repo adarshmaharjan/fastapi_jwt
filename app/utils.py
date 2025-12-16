@@ -3,8 +3,11 @@ import os
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
+from dotenv import load_dotenv
 from jose import jwt
 from passlib.context import CryptContext
+
+load_dotenv()
 
 # Load environment variables from .env file
 
@@ -38,6 +41,21 @@ def create_access_token(subject: str | Any, expires_delta: int | None = None):
             minutes=ACCESS_TOKEN_EXPIRE_MINUTES
         )
     to_encode = {"exp": expire_delta, "sub": str(subject)}
+
+    if JWT_SECRET_KEY is None:
+        raise ValueError("JWT_SECRET_KEY environment variable is not set")
+    encode_jwt = jwt.encode(to_encode, JWT_SECRET_KEY, ALGORITHM)
+    return encode_jwt
+
+
+def create_refresh_token(subject: str | Any, expire_delta: int | None = None):
+    if expire_delta:
+        expire = datetime.now(tz=timezone.utc) + timedelta(minutes=expire_delta)
+    else:
+        expire = datetime.now(tz=timezone.utc) + timedelta(
+            minutes=REFRESH_TOKEN_EXPIRE_MINUTES
+        )
+    to_encode = {"exp": expire, "sub": str(subject)}
 
     if JWT_REFRESH_SECRET_KEY is None:
         raise ValueError("JWT_REFRESH_SECRET_KEY environment variable is not set")
