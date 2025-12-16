@@ -6,6 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.database import Base, engine, get_db
+from app.deps import get_current_user
 from app.model import User
 from app.schemas import TokenSchema, UserAuth, UserOut
 from app.utils import (
@@ -78,3 +79,10 @@ async def login(
         "access_token": create_access_token(user.email),
         "refresh_token": create_refresh_token(user.email),
     }
+
+
+@app.get(
+    "/me", summary="Get details of currently logged in user", response_model=UserOut
+)
+async def get_me(user: User = Depends(get_current_user)):
+    return user
